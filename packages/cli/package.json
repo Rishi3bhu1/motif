@@ -1,7 +1,7 @@
 {
   "name": "getmotif",
   "version": "1.3.3",
-  "description": "Working memory for AI coding agents, yours and your team's. Claude Code, Codex and Cursor sessions on your own server, distilled into memory your agents recall over MCP. Solo from the first minute, a team when you invite one. Self-hosted.",
+  "description": "The experience graph for AI agents. Self-hosted session memory, human review, outcome-linked decision datasets, and offline evaluation. Claude Code, Codex and Cursor.",
   "keywords": [
     "ai",
     "agents",

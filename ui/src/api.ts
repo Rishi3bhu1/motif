@@ -82,7 +82,7 @@ export interface ReviewNote {
 }
 
 export interface ReviewItem {
-  type: 'conflict' | 'stale' | 'disputed';
+  type: 'conflict' | 'stale' | 'disputed' | 'proposed';
   note: ReviewNote;
   against?: ReviewNote;
 }

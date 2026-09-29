@@ -21,12 +21,13 @@ import { registerMemory } from './commands/memory.js';
 import { registerDemo } from './commands/demo.js';
 import { registerBlame } from './commands/blame.js';
 import { registerWeaver } from './commands/weaver.js';
+import { registerLearning } from './commands/learning.js';
 
 const program = new Command();
 
 program
   .name('motif')
-  .description('Unification layer for AI coding agent sessions')
+  .description('The experience graph for AI agents: capture, remember, verify, learn, act')
   .version(CLI_VERSION)
   .option('--claude-dir <path>', 'Claude Code data directory (default: ~/.claude)');
 
@@ -51,6 +52,7 @@ registerMemory(program);
 registerDemo(program);
 registerBlame(program);
 registerWeaver(program);
+registerLearning(program);
 
 program.parseAsync().catch((err: unknown) => {
   console.error(err instanceof Error ? err.message : String(err));

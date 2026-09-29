@@ -1,4 +1,5 @@
-import type { MotifMessage, MotifSession } from '@motif/core';
+import type { MotifMessage, MotifSession, DecisionDataset } from '@motif/core';
+import type { LearningSummary } from '@motif/server';
 
 export interface AskRequest {
   id: number;
@@ -32,6 +33,20 @@ export class ApiError extends Error {
 
 export class MotifClient {
   constructor(private readonly opts: ClientOptions) {}
+
+  decisions(opts: { scope: string; project?: string }): Promise<LearningSummary> {
+    const query = new URLSearchParams({ scope: opts.scope });
+    if (opts.project) query.set('project', opts.project);
+    return this.request('GET', `/api/decisions?${query}`);
+  }
+
+  extractDecisions(opts: { scope: string; project?: string }): Promise<LearningSummary> {
+    return this.request('POST', '/api/decisions/extract', opts);
+  }
+
+  exportDecisionDataset(opts: { scope: string; project?: string }): Promise<DecisionDataset> {
+    return this.request('POST', '/api/datasets/export', opts);
+  }
 
   private async request<T>(method: string, pathName: string, body?: unknown): Promise<T> {
     const res = await fetch(new URL(pathName, this.opts.serverUrl), {

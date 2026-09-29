@@ -1,4 +1,6 @@
 export * from './schema.js';
+export * from './experience.js';
+export * from './outcome.js';
 export * from './readers/claude-code.js';
 export * from './readers/codex.js';
 export * from './digest.js';

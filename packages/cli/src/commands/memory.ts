@@ -56,7 +56,7 @@ export function registerMemory(program: Command): void {
           console.log('PROPOSED, a new team decision, held out of recall until you admit it:');
           console.log(renderNote(item.note));
           console.log(
-            `     rule: motif memory confirm ${item.note.id}  (admit)   ·   motif memory retire ${item.note.id}  (reject)\n`,
+            `     rule: motif memory admit ${item.note.id}   ·   motif memory reject ${item.note.id}\n`,
           );
         } else if (item.type === 'stale') {
           console.log('STALE, the files this note came from have moved on since:');
@@ -125,10 +125,12 @@ export function registerMemory(program: Command): void {
 
   memory
     .command('reject <noteId>')
-    .description('Reject a proposed team decision, it never enters recall (alias for retire)')
+    .description('Reject a proposed team decision; its source session stays searchable (alias for retire)')
     .option('--reason <text>', 'why (recorded with the ruling)')
     .action(async (noteId: string, opts: { reason?: string }) => {
       await client().postMemoryVerdict(Number(noteId), 'retire', { reason: opts.reason });
-      console.log(`Proposal #${noteId} rejected, kept in the record, never served to an agent.`);
+      console.log(
+        `Proposal #${noteId} rejected, out of recalled memory. Its source session stays searchable.`,
+      );
     });
 }

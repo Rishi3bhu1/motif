@@ -1221,7 +1221,9 @@ function ReviewPage({ me }: { me: Me }) {
               <span>
                 {item.type === 'stale'
                   ? `${item.note.stale_reason ?? 'its source files moved on'}`
-                  : 'flagged as wrong, evidence pending'}
+                  : item.type === 'proposed'
+                    ? 'held out of recalled memory until a human admits it'
+                    : 'flagged as wrong, evidence pending'}
               </span>
             </div>
             <div class="case-claims single">
@@ -1245,10 +1247,10 @@ function ReviewPage({ me }: { me: Me }) {
                 disabled={!canRule || busy}
                 onClick={() => rule(item.note.id, 'confirm')}
               >
-                Still true
+                {item.type === 'proposed' ? 'Admit to memory' : 'Still true'}
               </button>
               <button disabled={!canRule || busy} onClick={() => rule(item.note.id, 'retire')}>
-                Retire it
+                {item.type === 'proposed' ? 'Reject proposal' : 'Retire it'}
               </button>
             </div>
           </div>
@@ -1471,7 +1473,13 @@ function WeavePage() {
       t = setTimeout(load, 400); // coalesce bursts during a swarm
     };
     const stop = openEvents((name) => {
-      if (name === 'session-upserted' || name === 'memory-updated' || name === 'memory-conflict') nudge();
+      if (
+        name === 'session-upserted' ||
+        name === 'memory-updated' ||
+        name === 'memory-conflict' ||
+        name === 'memory-reviewed'
+      )
+        nudge();
     });
     return () => {
       clearTimeout(t);
@@ -1973,7 +1981,7 @@ function MemoryPage() {
   useEffect(() => {
     reload();
     return openEvents((name) => {
-      if (name === 'memory-updated') reload();
+      if (name === 'memory-updated' || name === 'memory-reviewed') reload();
     });
   }, []);
   if (!entities) return <Skeleton rows={5} />;

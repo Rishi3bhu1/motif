@@ -12,6 +12,7 @@ import { LiveBus } from './live/bus.js';
 import { recall, renderRecall } from './retrieval.js';
 import { applyVerdict, listReviewQueue } from './memory/review.js';
 import { confidence, supportByEntity } from './memory/confidence.js';
+import { registerLearningRoutes } from './learning/routes.js';
 import {
   claimWeaverJob,
   completeWeaverJob,
@@ -1343,6 +1344,7 @@ export function createServer(config: ServerConfig = {}): MotifServer {
 
   // Registered after every real API route and before the static handler, so an
   // unknown /api path always answers JSON, with or without a bundled dashboard.
+  registerLearningRoutes(app, db);
   app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
 
   serveUi(app);
@@ -1467,6 +1469,9 @@ export function whenListening(listener: ServerType): Promise<void> {
 }
 
 export { dedupeMembers, openDb, type Db } from './db/database.js';
+export * from './learning/store.js';
+export * from './learning/dataset.js';
+export * from './learning/evaluate.js';
 export * from './retrieval.js';
 export * from './store.js';
 export { LiveBus } from './live/bus.js';

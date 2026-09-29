@@ -31,6 +31,8 @@ import {
 } from './requests.js';
 
 interface SyncedState {
+  readerVersion?: number;
+  contentHash?: string;
   count: number;
   hash: string;
   mtimeMs: number;
@@ -38,6 +40,7 @@ interface SyncedState {
 }
 
 type DaemonState = Record<string, SyncedState>;
+const READER_VERSION = 2;
 
 function statePath(): string {
   return path.join(motifHome(), 'daemon-state.json');
@@ -240,7 +243,13 @@ export async function syncOnce(
 
   for (const file of collectSyncItems(opts.claudeDir)) {
     const prev = state[file.key];
-    if (!opts.force && prev && prev.mtimeMs === file.mtimeMs && prev.size === file.size) {
+    if (
+      !opts.force &&
+      prev?.readerVersion === READER_VERSION &&
+      prev.contentHash !== undefined &&
+      prev.mtimeMs === file.mtimeMs &&
+      prev.size === file.size
+    ) {
       report.unchanged++;
       continue;
     }
@@ -257,7 +266,14 @@ export async function syncOnce(
     }
     if (session.messages.length === 0) {
       // nothing to share (e.g. Cursor cloud-cache stubs), remember and move on
-      state[file.key] = { count: 0, hash: await idPrefixHash([]), mtimeMs: file.mtimeMs, size: file.size };
+      state[file.key] = {
+        readerVersion: READER_VERSION,
+        contentHash: await sha256hex('[]'),
+        count: 0,
+        hash: await idPrefixHash([]),
+        mtimeMs: file.mtimeMs,
+        size: file.size,
+      };
       report.excluded++;
       continue;
     }
@@ -267,9 +283,10 @@ export async function syncOnce(
     const ids = session.messages.map((m) => m.id);
     try {
       let confirmedCount = 0;
-      if (prev && prev.count <= ids.length) {
+      if (!opts.force && prev?.readerVersion === READER_VERSION && prev.count <= ids.length) {
         const localPrefixHash = await idPrefixHash(ids.slice(0, prev.count));
-        if (localPrefixHash === prev.hash) {
+        const contentHash = await sha256hex(JSON.stringify(session.messages.slice(0, prev.count)));
+        if (localPrefixHash === prev.hash && contentHash === prev.contentHash) {
           const { messages: _messages, ...meta } = session;
           const newMessages = session.messages.slice(prev.count);
           if (newMessages.length === 0 && prev.count === ids.length) {
@@ -309,6 +326,8 @@ export async function syncOnce(
         report.replaced++;
       }
       state[file.key] = {
+        readerVersion: READER_VERSION,
+        contentHash: await sha256hex(JSON.stringify(session.messages.slice(0, confirmedCount))),
         count: confirmedCount,
         hash: await idPrefixHash(ids.slice(0, confirmedCount)),
         mtimeMs: file.mtimeMs,

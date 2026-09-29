@@ -24,6 +24,12 @@ export interface MotifMessage {
   toolCallId?: string;
   /** tool_call only: the original input object. */
   toolInput?: unknown;
+  /** Reported execution evidence, never a judgment of task correctness. */
+  toolResult?: {
+    isError?: boolean;
+    exitCode?: number;
+    terminal?: boolean;
+  };
 }
 
 export interface SessionMeta {

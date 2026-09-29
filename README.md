@@ -1,11 +1,11 @@
 <h1 align="center">Motif</h1>
 
-<p align="center"><b>Working memory for AI coding agents, yours, and your team's.</b></p>
+<p align="center"><b>The experience graph for AI agents.</b></p>
 
 <p align="center">
-  Your AI sessions know things your repo doesn't: what was decided, what was tried, what broke.<br />
-  Motif remembers it, keeps that memory honest, and puts it to work, from recall to pull requests.<br />
-  Solo from the first minute; a team the moment you invite one. On infrastructure you own.
+  Agents shouldn't just remember what happened. They should learn from it.<br />
+  Motif captures what agents tried, what happened, and what people corrected.<br />
+  Reuse that experience as memory and inspectable decision datasets. Self-hosted, solo or with your team.
 </p>
 
 <p align="center">
@@ -41,6 +41,44 @@ already made.
 Motif collects all of it onto a server you host, and hands it back when it is
 needed.
 
+## One experience graph, two uses
+
+**Recall** relevant experience as context:
+
+```bash
+motif recall "why do we fail closed when Redis is down?"
+```
+
+**Learn** from discrete decisions with observable outcomes:
+
+```bash
+motif decisions extract command_recovery
+motif decisions
+motif dataset command_recovery --out ./recovery-dataset
+motif eval ./recovery-dataset --baseline majority
+```
+
+The first learning recipe studies what an agent did after a command failed:
+retry it unchanged or revise it, with the next attempt's reported exit status.
+Every example carries its source messages, a decision-time input, an observed
+choice, outcome evidence, and quality reasons. Failed attempts are retained.
+A successful command is evidence of execution, not proof of a correct decision.
+
+Try the whole learning pipeline with invented native traces:
+
+```bash
+motif demo --learn
+```
+
+No real history is opened, no commands from the traces are executed, and no model
+or API key is needed. The demo exports an inspectable dataset and runs an offline
+baseline. Its scores demonstrate the pipeline, not improved agent performance.
+
+**Bring your own decision model. Motif gives it experience.** Export blind test
+inputs and evaluate external predictions without adding an ML stack to Motif.
+Fine-tuning and runtime decision routing are future work; the current evaluator
+measures agreement with recorded behavior. [Learning guide](docs/LEARNING.md).
+
 ## Install
 
 ```bash
@@ -65,12 +103,19 @@ pick the winner from the terminal, and the Weaver aligns a real (throwaway) git
 repository with your ruling, the diff on screen. No reader runs; your own
 history is never opened.
 
+For a focused admission-gate recording, `motif demo --gate` stages two proposals
+and walks through review, recall, admit, and reject. Add `--prepare` to type the
+commands yourself, or `--auto --fast` for a quick rehearsal. See the
+[recording guide](https://github.com/motif-Labs/motif/blob/main/docs/DEMO-RECORDING.md)
+for local-build commands and a 60-second script. The gate holds decision notes
+out of recall; source transcripts remain searchable.
+
 ## How it works
 
-Motif works in three movements, **remember**, **verify**, **act**, and every
-verb under them is a command you can run today.
+Motif follows **Capture → Remember → Verify → Learn → Act**. The session record,
+human feedback, and observed outcomes connect those steps.
 
-### Remember
+### Capture
 
 ### 01 · Collect, one memory for the whole team
 
@@ -95,6 +140,8 @@ you say otherwise:
 motif projects team ~/work/payments-api      # this project goes to the team
 motif projects exclude ~/personal --purge    # this one never does
 ```
+
+### Remember
 
 ### 02 · Ask, the agent that lived it answers
 
@@ -237,6 +284,29 @@ Rulings never delete, and the ruling itself is recorded, who ruled, over what,
 and why. Recall serves the outcome: retired notes disappear, human-verified
 ones outrank machine-only ones, and an unresolved conflict is shown to agents
 with both sides and a warning, never as one quiet wrong answer.
+
+### Learn
+
+Learning reads the ordered trace directly, alongside memory extraction. It does
+not train on memory summaries or treat raw agent text as ground truth.
+
+- `motif decisions extract` runs a versioned, deterministic recipe over ingested
+  sessions. Unsupported or ambiguous evidence is counted and skipped.
+- `motif decisions show <id>` exposes the state boundary, action, source receipts,
+  outcome, and reasons an example qualifies or is excluded.
+- `motif dataset command_recovery --out <directory>` produces JSONL examples,
+  blind test inputs, and a content-hashed manifest. Related examples stay in the
+  same evaluation group. Team exports exclude personal sessions; use
+  `--scope personal` explicitly for your own experience.
+- `motif eval <directory>` evaluates a training-only majority baseline. Use
+  `--predictions <file>` to score your own decision model's choices or abstentions.
+
+Later disputes, retired claims, and superseded source memory conservatively
+quarantine a session's examples until reviewed. These are source-session signals,
+not automatically correct labels for individual actions. Rewritten histories
+invalidate old projections; deleting a source removes its stored learning data.
+
+[Dataset format, supported receipts, evaluation limits, and API](docs/LEARNING.md).
 
 ### Act
 

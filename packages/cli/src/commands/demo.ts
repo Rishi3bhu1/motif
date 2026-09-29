@@ -14,6 +14,8 @@ import {
   whenListening,
 } from '@motif/server';
 import { performWeaverJob } from '../weaver/perform.js';
+import { runGateDemo } from '../demo/gate.js';
+import { runLearningDemo } from '../demo/learning.js';
 import {
   SESSIONS,
   insertSession,
@@ -73,9 +75,23 @@ export function registerDemo(program: Command): void {
     .option('--no-open', 'do not open the dashboard in a browser')
     .option('--fast', 'no dramatic pauses')
     .option('--auto', 'do not ask for the ruling; side with the ADR')
+    .option('--gate', 'show two proposed decisions and the human admission gate')
+    .option('--learn', 'run synthetic native traces through extraction, dataset export and evaluation')
+    .option('--prepare', 'with --gate, leave proposals pending for a manual recording')
     .option('--clean', 'remove the demo and exit')
     .action(
-      async (opts: { port: string; open: boolean; fast?: boolean; auto?: boolean; clean?: boolean }) => {
+      async (opts: {
+        port: string;
+        open: boolean;
+        fast?: boolean;
+        auto?: boolean;
+        clean?: boolean;
+        gate?: boolean;
+        learn?: boolean;
+        prepare?: boolean;
+      }) => {
+        if (opts.prepare && !opts.gate) throw new Error('--prepare requires --gate');
+        if (opts.learn && opts.gate) throw new Error('Choose --learn or --gate');
         const dir = process.env.MOTIF_DEMO_DIR ?? path.join(os.homedir(), '.motif-demo');
         if (opts.clean) {
           fs.rmSync(dir, { recursive: true, force: true });
@@ -86,6 +102,16 @@ export function registerDemo(program: Command): void {
         // a fresh take every run, the demo is a stage, not a workspace
         fs.rmSync(dir, { recursive: true, force: true });
         fs.mkdirSync(dir, { recursive: true });
+
+        if (opts.learn) {
+          await runLearningDemo(dir);
+          return;
+        }
+
+        if (opts.gate) {
+          await runGateDemo(dir, opts);
+          return;
+        }
 
         const beat = (ms: number): Promise<void> =>
           opts.fast ? Promise.resolve() : new Promise((r) => setTimeout(r, ms));

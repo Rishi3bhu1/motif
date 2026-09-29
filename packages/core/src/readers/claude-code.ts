@@ -15,6 +15,7 @@ import path from 'node:path';
 import os from 'node:os';
 import type { MotifMessage, MotifSession } from '../schema.js';
 import { motifSessionId } from '../schema.js';
+import { readToolOutcome } from '../outcome.js';
 
 export interface SessionFileInfo {
   path: string;
@@ -242,6 +243,10 @@ export function readClaudeSession(filePath: string): MotifSession {
               timestamp: ts,
               toolCallId: typeof b.tool_use_id === 'string' ? b.tool_use_id : undefined,
               text: flattenBlockContent(b.content),
+              toolResult: {
+                ...readToolOutcome(line.toolUseResult),
+                ...(typeof b.is_error === 'boolean' ? { isError: b.is_error } : {}),
+              },
             });
           } else if (b.type === 'text' && typeof b.text === 'string') {
             messages.push({ id: `${uuid}#${i}`, role: 'user', timestamp: ts, text: b.text });

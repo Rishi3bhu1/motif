@@ -12,6 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import type { MotifMessage, MotifSession } from '../schema.js';
 import { motifSessionId } from '../schema.js';
+import { readToolOutcome } from '../outcome.js';
 
 export function defaultCodexDir(): string {
   return process.env.CODEX_HOME ?? path.join(os.homedir(), '.codex');
@@ -188,6 +189,7 @@ export function readCodexSession(filePath: string): MotifSession {
               timestamp: ts,
               toolCallId: typeof p.call_id === 'string' ? p.call_id : undefined,
               text: typeof output === 'string' ? output : contentText(output) || JSON.stringify(output ?? ''),
+              toolResult: readToolOutcome(output),
             });
             break;
           }

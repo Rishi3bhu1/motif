@@ -297,6 +297,41 @@ const MIGRATIONS: string[] = [
   // what the team "knows" unreviewed. Everything else, files, topics, personal
   // notes, and conflicts, which are already adjudicated, stays admitted on sight.
   `ALTER TABLE memory_notes ADD COLUMN admitted INTEGER NOT NULL DEFAULT 1;`,
+  // v15: inspectable decision occurrences and their source receipts. Session
+  // revisions invalidate projections; source deletion cascades through learning.
+  `
+  ALTER TABLE sessions ADD COLUMN experience_revision INTEGER NOT NULL DEFAULT 0;
+  CREATE TABLE decision_scans (
+    session_pk INTEGER PRIMARY KEY REFERENCES sessions(pk) ON DELETE CASCADE,
+    revision INTEGER NOT NULL,
+    extractor TEXT NOT NULL,
+    summary_json TEXT NOT NULL
+  );
+  CREATE TABLE decision_events (
+    id TEXT PRIMARY KEY,
+    session_pk INTEGER NOT NULL REFERENCES sessions(pk) ON DELETE CASCADE,
+    revision INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    body_json TEXT NOT NULL
+  );
+  CREATE INDEX idx_decisions_session ON decision_events(session_pk);
+  CREATE TABLE decision_evidence (
+    decision_id TEXT NOT NULL REFERENCES decision_events(id) ON DELETE CASCADE,
+    message_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    content_hash TEXT NOT NULL,
+    PRIMARY KEY(decision_id, role)
+  );
+  CREATE TRIGGER learning_message_insert AFTER INSERT ON messages BEGIN
+    UPDATE sessions SET experience_revision = experience_revision + 1 WHERE pk = NEW.session_pk;
+  END;
+  CREATE TRIGGER learning_message_delete AFTER DELETE ON messages BEGIN
+    UPDATE sessions SET experience_revision = experience_revision + 1 WHERE pk = OLD.session_pk;
+  END;
+  CREATE TRIGGER learning_message_update AFTER UPDATE ON messages BEGIN
+    UPDATE sessions SET experience_revision = experience_revision + 1 WHERE pk = NEW.session_pk;
+  END;
+  `,
 ];
 
 export function openDb(dbPath: string): Db {
