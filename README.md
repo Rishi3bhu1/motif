@@ -1,5 +1,14 @@
 <h1 align="center">Motif</h1>
 
+<p align="center">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="https://raw.githubusercontent.com/motif-Labs/motif/main/docs/assets/experience-hero.png" />
+    <img src="https://raw.githubusercontent.com/motif-Labs/motif/main/docs/assets/experience-hero.gif" alt="Pixel agents send experience into Motif's graph. One branch recalls human-reviewed memory with sources; another exports decision datasets and evaluations." width="1200" />
+  </picture>
+</p>
+
+<p align="center"><sub><a href="docs/assets/experience-hero.png">Static illustration</a> · <a href="docs/assets/hero.png">See the actual graph dashboard</a></sub></p>
+
 <p align="center"><b>The experience graph for AI agents.</b></p>
 
 <p align="center">
@@ -23,12 +32,6 @@
   <img src="https://img.shields.io/badge/node-%E2%89%A522-green" alt="Node 22+" />
   <img src="https://img.shields.io/badge/self--hosted-no%20cloud-lightgrey" alt="Self-hosted" />
 </p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/motif-Labs/motif/main/docs/assets/hero.png" alt="The Weave: every decision, file and session a team's agents produced, drawn as one living graph, with a hovered node showing its confidence and ties" width="900" />
-</p>
-
-<p align="center"><sub>Every decision, file and session your team's agents produced, drawn as one living graph.<br />Hover a node for its confidence and how many ties it holds.</sub></p>
 
 ---
 
